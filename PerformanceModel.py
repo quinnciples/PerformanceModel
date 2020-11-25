@@ -51,9 +51,7 @@ class ResourcePool:
         pb = ProgressBar(toolbar_width=toolbar_width)
         skills = ['LEVEL_1', 'LEVEL_2', 'LEVEL_3']
         for x_ in range(self.NUM_RESOURCES):
-            if x_ % round(self.NUM_RESOURCES / toolbar_width) == 0 and x_ > 0:
-                # print(round(x_ * 100 / self.NUM_RESOURCES))
-                pb.update(x_, self.NUM_RESOURCES)
+            pb.update(x_, self.NUM_RESOURCES)
 
             # Select the start time for this employee's shift
             start_interval = determineStartingInterval()
@@ -153,7 +151,8 @@ class ResourcePool:
                     # print('No employees available beginning at interval: ' + str(demand['interval']) + ' for skill: ' + demand['skill'])
                     # turned off due to max interval code interfering with this logic
                 if len(self.exhaustedSkills) == self.NUM_SKILLS:
-                    print(f'All skills exhausted. Simulated {k} out of {self.NUM_CALLS} demand events.')
+                    pb.update(1, 1)
+                    print(f'\nAll skills exhausted. Simulated {k} out of {self.NUM_CALLS} demand events.')
                     abort = True  # switch
                 if abort:
                     pb.update(1, 1)
@@ -263,7 +262,6 @@ resourcePool.createResources()
 
 # Create demand input
 resourcePool.createDemand()
-
 
 print('Sorting demand list...')
 print('Optimizing simulation paramaters')
