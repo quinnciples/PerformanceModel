@@ -27,6 +27,7 @@ class ResourcePool:
         print('Creating employee list...')
         toolbar_width = 40
         pb = ProgressBar(toolbar_width=toolbar_width)
+        skills = ['LEVEL_1', 'LEVEL_2', 'LEVEL_3']
         for x_ in range(self.NUM_RESOURCES):
             if x_ % round(self.NUM_RESOURCES / toolbar_width) == 0 and x_ > 0:
                 # print(round(x_ * 100 / self.NUM_RESOURCES))
@@ -36,11 +37,15 @@ class ResourcePool:
             start_interval = P_constrain(np.random.normal(), -2.35, 3)
             start_interval = P_map(start_interval, -2.35, 3, 0, 4.999)
             start_interval = int(start_interval * 60 * 60)
+            # Build out the employee's schedule
+            # Prefill 0's from the beginning of the day until the start of this employee's shift
             temp_sch = [0 for x in range(start_interval)]
+            # Fill in 1's for the duration of this employee's shift
             temp_sch.extend([1 for x in range(self.SHIFT_LENGTH)])
+            # Fill in 0's from the end of this employee's shift until the end of the day
             temp_sch.extend([0 for x in range((self.NUM_INTERVALS) - (self.SHIFT_LENGTH) - (start_interval))])
             usage = [0 for x in range(self.NUM_INTERVALS)]
-            skills = ['LEVEL_1', 'LEVEL_2', 'LEVEL_3']
+            
             skill = [random.choice(skills)]
             if random.randint(0, 100) <= 30:
                 skill.append(random.choice([x_ for x_ in skills if x_ not in skill]))
