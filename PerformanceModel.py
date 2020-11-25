@@ -13,7 +13,7 @@ class ResourcePool:
         self.exhaustedSkills = []
 
         # Model paramaters
-        self.NUM_INTERVALS = 60 * 12 * 60  # Hours * Minutes * Seconds
+        self.NUM_INTERVALS = 12 * 60 * 60  # Hours * Minutes * Seconds
         self.MAX_INTERVAL = self.NUM_INTERVALS - 1
         self.NUM_CALLS = 20000
         self.NUM_RESOURCES = 170
@@ -24,6 +24,28 @@ class ResourcePool:
         self.WRITE_TO_FILE = False
 
     def createResources(self):
+        def determineStartingInterval():
+            start_interval = P_constrain(np.random.normal(), -2.35, 3)
+            start_interval = P_map(start_interval, -2.35, 3, 0, 4.999)
+            start_interval = int(start_interval * 60 * 60)
+            return start_interval
+
+        def determineSchedule(start_interval):
+            # Build out the employee's schedule
+            # Prefill 0's from the beginning of the day until the start of this employee's shift
+            temp_sch = [0 for x in range(start_interval)]
+            # Fill in 1's for the duration of this employee's shift
+            temp_sch.extend([1 for x in range(self.SHIFT_LENGTH)])
+            # Fill in 0's from the end of this employee's shift until the end of the day
+            temp_sch.extend([0 for x in range((self.NUM_INTERVALS) - (self.SHIFT_LENGTH) - (start_interval))])
+            return temp_sch
+
+        def determineSkillAssignments():
+            skill = [random.choice(skills)]
+            if random.randint(0, 100) <= 30:
+                skill.append(random.choice([x_ for x_ in list(set(skills) - set(skill))]))
+            return skill
+
         print('Creating employee list...')
         toolbar_width = 40
         pb = ProgressBar(toolbar_width=toolbar_width)
@@ -33,23 +55,17 @@ class ResourcePool:
                 # print(round(x_ * 100 / self.NUM_RESOURCES))
                 pb.update(x_, self.NUM_RESOURCES)
 
-            # start_interval = random.choices([0*60, 60*60, 120*60, 180*60, 240*60], weights=[5,10,50,10,5],k=1)[0]
-            start_interval = P_constrain(np.random.normal(), -2.35, 3)
-            start_interval = P_map(start_interval, -2.35, 3, 0, 4.999)
-            start_interval = int(start_interval * 60 * 60)
+            # Select the start time for this employee's shift
+            start_interval = determineStartingInterval()
+
             # Build out the employee's schedule
-            # Prefill 0's from the beginning of the day until the start of this employee's shift
-            temp_sch = [0 for x in range(start_interval)]
-            # Fill in 1's for the duration of this employee's shift
-            temp_sch.extend([1 for x in range(self.SHIFT_LENGTH)])
-            # Fill in 0's from the end of this employee's shift until the end of the day
-            temp_sch.extend([0 for x in range((self.NUM_INTERVALS) - (self.SHIFT_LENGTH) - (start_interval))])
-            usage = [0 for x in range(self.NUM_INTERVALS)]
-            
-            skill = [random.choice(skills)]
-            if random.randint(0, 100) <= 30:
-                skill.append(random.choice([x_ for x_ in skills if x_ not in skill]))
-            self.addResource({'id': x_ + 10, 'schedule': temp_sch, 'utilization': usage, 'skills': skill})
+            schedule = determineSchedule(start_interval)
+
+            utilization = [0 for x in range(self.NUM_INTERVALS)]
+
+            skillset = determineSkillAssignments()
+
+            self.addResource({'id': x_ + 10, 'schedule': schedule, 'utilization': utilization, 'skills': skillset})
         pb.update(1, 1)
         pb.clean()
 
@@ -140,6 +156,7 @@ class ResourcePool:
                     print(f'All skills exhausted. Simulated {k} out of {self.NUM_CALLS} demand events.')
                     abort = True  # switch
                 if abort:
+                    pb.update(1, 1)
                     break
         pb.update(k + 1, len(self.demandList))
         pb.clean()
