@@ -4,18 +4,20 @@ from P_Functions import P_constrain, P_map
 import numpy as np
 # ToDo: change schedule flag to -1, to account for demand id of 1
 
+
 class ResourcePool:
+
     def __init__(self):
         self.resourceList = []
         self.demandList = []
         self.exhaustedSkills = []
 
         # Model paramaters
-        self.NUM_INTERVALS = 60 * 12 * 60
-        self.MAX_INTERVAL = self.NUM_INTERVALS - 1  # max(self.intervals)
+        self.NUM_INTERVALS = 60 * 12 * 60  # Hours * Minutes * Seconds
+        self.MAX_INTERVAL = self.NUM_INTERVALS - 1
         self.NUM_CALLS = 20000
         self.NUM_RESOURCES = 170
-        self.SHIFT_LENGTH = 8 * 60 * 60
+        self.SHIFT_LENGTH = 8 * 60 * 60  # Hours * Minutes * Seconds
         self.MAX_DURATION = 300
         self.MAX_DELAY_BEFORE_CANCEL = 0
         self.minAvailableInterval = self.MAX_INTERVAL
@@ -24,51 +26,48 @@ class ResourcePool:
 
     def createResources(self):
         print('Creating employee list...')
-        twidth = 40
-        pb = ProgressBar(twidth)
-            
+        toolbar_width = 40
+        pb = ProgressBar(toolbar_width=toolbar_width) 
         for x_ in range(self.NUM_RESOURCES):
-            if x_ % round(self.NUM_RESOURCES/twidth) == 0 and x_ > 0:
-                #print(round(x_ * 100 / self.NUM_RESOURCES))
+            if x_ % round(self.NUM_RESOURCES / toolbar_width) == 0 and x_ > 0:
+                # print(round(x_ * 100 / self.NUM_RESOURCES))
                 pb.update(x_, self.NUM_RESOURCES)
-                pass
-            #start_interval = random.choices([0*60, 60*60, 120*60, 180*60, 240*60], weights=[5,10,50,10,5],k=1)[0]
-            start_interval = P_constrain(np.random.normal(),-2.35,3)
-            start_interval = P_map(start_interval,-2.35,3,0,4.999)
-            start_interval = int(start_interval*60*60)
+
+            # start_interval = random.choices([0*60, 60*60, 120*60, 180*60, 240*60], weights=[5,10,50,10,5],k=1)[0]
+            start_interval = P_constrain(np.random.normal(), -2.35, 3)
+            start_interval = P_map(start_interval, -2.35, 3, 0, 4.999)
+            start_interval = int(start_interval * 60 * 60)
             temp_sch = [0 for x in range(start_interval)]
             temp_sch.extend([1 for x in range(self.SHIFT_LENGTH)])
-            temp_sch.extend([0 for x in range((self.NUM_INTERVALS) - (self.SHIFT_LENGTH)-(start_interval))])
+            temp_sch.extend([0 for x in range((self.NUM_INTERVALS) - (self.SHIFT_LENGTH) - (start_interval))])
             usage = [0 for x in range(self.NUM_INTERVALS)]
             skills = ['LEVEL_1', 'LEVEL_2', 'LEVEL_3']
             skill = [random.choice(skills)]
             if random.randint(0, 100) <= 30:
                 skill.append(random.choice([x_ for x_ in skills if x_ not in skill]))
-            self.addResource({'id': x_+10, 'schedule': temp_sch,
-                              'utilization': usage, 'skills': skill})
-        pb.update(1,1)
+            self.addResource({'id': x_ + 10, 'schedule': temp_sch, 'utilization': usage, 'skills': skill})
+        pb.update(1, 1)
         pb.clean()
 
     def createDemand(self):
         print('Creating demand list...')
-        twidth = 40
-        pb = ProgressBar(twidth)
+        toolbar_width = 40
+        pb = ProgressBar(toolbar_width=toolbar_width) 
         for x_ in range(self.NUM_CALLS):
-            if x_ % round((self.NUM_CALLS / 10)) == 0:
-                #print(round(x_ * 100 / self.NUM_CALLS))
+            if x_ % round(self.NUM_CALLS / 10) == 0:
+                # print(round(x_ * 100 / self.NUM_CALLS))
                 pb.update(x_, self.NUM_CALLS)
-            #start_interval = random.randint(0, self.MAX_INTERVAL-self.MAX_DURATION-1)
-            #start_interval = int((np.random.normal(self.MAX_INTERVAL / 2,5000)))
-            #start_interval = int((np.random.normal(self.MAX_INTERVAL / 2, self.MAX_INTERVAL / 4)))
+            # start_interval = random.randint(0, self.MAX_INTERVAL-self.MAX_DURATION-1)
+            # start_interval = int((np.random.normal(self.MAX_INTERVAL / 2,5000)))
+            # start_interval = int((np.random.normal(self.MAX_INTERVAL / 2, self.MAX_INTERVAL / 4)))
             start_interval = np.random.normal()
-            start_interval = P_map(start_interval,-3.0,3.0,0,self.MAX_INTERVAL - self.MAX_DURATION - 1)
+            start_interval = P_map(start_interval, -3.0, 3.0, 0, self.MAX_INTERVAL - self.MAX_DURATION - 1)
             start_interval = int(P_constrain(start_interval, 0, self.MAX_INTERVAL - self.MAX_DURATION - 1))
-            #print(start_interval)
+            # print(start_interval)
             duration = random.randint(3, self.MAX_DURATION)
             skill = random.choice(['LEVEL_1', 'LEVEL_2', 'LEVEL_3'])
-            self.addDemand({'id': x_+10, 'interval': start_interval,
-                            'duration': duration, 'skill': skill})
-        pb.update(1,1)
+            self.addDemand({'id': x_ + 10, 'interval': start_interval, 'duration': duration, 'skill': skill})
+        pb.update(1, 1)
         pb.clean()
 
     def addResource(self, resource):
