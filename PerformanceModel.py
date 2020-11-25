@@ -20,14 +20,13 @@ class ResourcePool:
         self.SHIFT_LENGTH = 8 * 60 * 60  # Hours * Minutes * Seconds
         self.MAX_DURATION = 300
         self.MAX_DELAY_BEFORE_CANCEL = 0
-        self.minAvailableInterval = self.MAX_INTERVAL
         self.NUM_SKILLS = 3
         self.WRITE_TO_FILE = False
 
     def createResources(self):
         print('Creating employee list...')
         toolbar_width = 40
-        pb = ProgressBar(toolbar_width=toolbar_width) 
+        pb = ProgressBar(toolbar_width=toolbar_width)
         for x_ in range(self.NUM_RESOURCES):
             if x_ % round(self.NUM_RESOURCES / toolbar_width) == 0 and x_ > 0:
                 # print(round(x_ * 100 / self.NUM_RESOURCES))
@@ -52,7 +51,7 @@ class ResourcePool:
     def createDemand(self):
         print('Creating demand list...')
         toolbar_width = 40
-        pb = ProgressBar(toolbar_width=toolbar_width) 
+        pb = ProgressBar(toolbar_width=toolbar_width)
         for x_ in range(self.NUM_CALLS):
             if x_ % round(self.NUM_CALLS / 10) == 0:
                 # print(round(x_ * 100 / self.NUM_CALLS))
@@ -81,23 +80,23 @@ class ResourcePool:
 
     def prepareSimulation(self):
         self.sortDemand('interval')
+        minAvailableInterval = self.MAX_INTERVAL
         for res in self.resourceList:
             for k, available in enumerate(res['schedule']):
                 if available == 1:
-                    if k < self.minAvailableInterval:
-                        self.minAvailableInterval = k
+                    if k < minAvailableInterval:
+                        minAvailableInterval = k
                     break
-            if self.minAvailableInterval == 0:  # If earliest interval with availability is the very first interval,
-                break						   # then there is no need to check any more resources
-        #print(self.minAvailableInterval)
+            if minAvailableInterval == 0:  # If earliest interval with availability is the very first interval,
+                break					   # then there is no need to check any more resources
 
     def findAvailableResource(self, demand):
         filtered_list = [res for res in self.resourceList if demand['skill'] in res['skills']]
         if self.MAX_DELAY_BEFORE_CANCEL > 0:
-            #if demand['interval'] + self.MAX_DELAY_BEFORE_CANCEL >= self.NUM_INTERVALS:
-                #MAX_INTERVAL_TO_CHECK = self.NUM_INTERVALS
-            #else:
-                #MAX_INTERVAL_TO_CHECK = demand['interval'] + self.MAX_DELAY_BEFORE_CANCEL
+            # if demand['interval'] + self.MAX_DELAY_BEFORE_CANCEL >= self.NUM_INTERVALS:
+            #   MAX_INTERVAL_TO_CHECK = self.NUM_INTERVALS
+            # else:
+            #   MAX_INTERVAL_TO_CHECK = demand['interval'] + self.MAX_DELAY_BEFORE_CANCEL
             MAX_INTERVAL_TO_CHECK = P_constrain(int(demand['interval']) + self.MAX_DELAY_BEFORE_CANCEL, int(demand['interval']) + self.MAX_DELAY_BEFORE_CANCEL, self.NUM_INTERVALS)
         else:
             MAX_INTERVAL_TO_CHECK = self.NUM_INTERVALS
@@ -110,20 +109,19 @@ class ResourcePool:
                         if i <= self.MAX_INTERVAL:  # needed to make sure utilization doesn't exceed the model's time intervals
                             res['utilization'][i] = demand['id']
                     return 'SUCCESS'
-        #build in logic for different return codes depending on outcome
-        if interval == self.NUM_INTERVALS-1:
+        # Build in logic for different return codes depending on outcome
+        if interval == self.NUM_INTERVALS - 1:
             return 'FAIL_EXHAUSTED'
         else:
             return 'FAIL'
-        
 
     def runSimulation(self):
         abort = False
-        twidth = 40
-        pb = ProgressBar(twidth)
+        toolbar_width = 40
+        pb = ProgressBar(toolbar_width=toolbar_width)
         for k, demand in enumerate(self.demandList):
             if k % round((self.NUM_CALLS / 40)) == 0:
-                #print(round(k * 100 / self.NUM_CALLS))
+                # print(round(k * 100 / self.NUM_CALLS))
                 pb.update(k, len(self.demandList))
             if demand['skill'] in self.exhaustedSkills:
                 continue
@@ -131,14 +129,14 @@ class ResourcePool:
             if assigned == 'FAIL' or assigned == 'FAIL_EXHAUSTED':
                 if demand['skill'] not in self.exhaustedSkills and assigned == 'FAIL_EXHAUSTED':
                     self.exhaustedSkills.append(demand['skill'])
-                    #print('No employees available beginning at interval: ' + str(demand['interval']) + ' for skill: ' + demand['skill'])
-                    #turned off due to max interval code interfering with this logic
+                    # print('No employees available beginning at interval: ' + str(demand['interval']) + ' for skill: ' + demand['skill'])
+                    # turned off due to max interval code interfering with this logic
                 if len(self.exhaustedSkills) == self.NUM_SKILLS:
                     print(f'All skills exhausted. Simulated {k} out of {self.NUM_CALLS} demand events.')
-                    abort = True #switch
-                if abort == True:
+                    abort = True  # switch
+                if abort:
                     break
-        pb.update(k+1,len(self.demandList))
+        pb.update(k + 1, len(self.demandList))
         pb.clean()
 
     def printStatistics(self):
@@ -165,7 +163,7 @@ class ResourcePool:
                         max_delay = delay
                     if delay > SERVICE_LEVEL:
                         out_svl += 1
-        
+
         print('Calculating resource statistics...')
         utilization = 0
         available = 0
@@ -174,8 +172,8 @@ class ResourcePool:
             for moment in res['utilization']:
                 if moment > 1:
                     utilization += 1
-        res_utilization = round(100 * utilization / available,2)
-        
+        res_utilization = round(100 * utilization / available, 2)
+
         avg_delay = 0
         if missed_calls > 0:
             avg_delay = round(total_delay / missed_calls, 2)
@@ -193,7 +191,7 @@ class ResourcePool:
         print(f'Max delay: {max_delay}')
         print(f'Resource Utilization: {res_utilization}%')
 
-        if self.WRITE_TO_FILE == True:
+        if self.WRITE_TO_FILE:
             import sqlite3
             import csv
             conn = sqlite3.connect('perfmodel.db')
@@ -209,8 +207,8 @@ class ResourcePool:
                 writer.writeheader()
                 for w_ in self.demandList:
                     writer.writerow(w_)
-                    #print(f"""INSERT INTO tblDemand VALUES ({w_['id']}, {w_['interval']}, {w_['duration']},'{w_['skill']}');""")
-                    #crsr.execute(f"""INSERT INTO tblDemand VALUES ({w_['id']}, {w_['interval']}, {w_['duration']},'{w_['skill']}');""")
+                    # print(f"""INSERT INTO tblDemand VALUES ({w_['id']}, {w_['interval']}, {w_['duration']},'{w_['skill']}');""")
+                    # crsr.execute(f"""INSERT INTO tblDemand VALUES ({w_['id']}, {w_['interval']}, {w_['duration']},'{w_['skill']}');""")
             conn.commit()
 
             crsr.execute("""DROP TABLE IF EXISTS tblResources;""")
@@ -218,21 +216,20 @@ class ResourcePool:
             crsr.execute("""CREATE TABLE tblResources (ID BIGINT, SCHEDULE TINYINT, UTILIZATION BIGINT, SKILLS STRING);""")
             conn.commit()
 
-        
-            twidth = 40
-            pb = ProgressBar(twidth)
+            toolbar_width = 40
+            pb = ProgressBar(toolbar_width=toolbar_width)
             with open('resource_stats.csv', 'w') as csv_file:
-                writer = csv.DictWriter(csv_file, fieldnames=['id','interval','schedule','utilization'], lineterminator="\n")
+                writer = csv.DictWriter(csv_file, fieldnames=['id', 'interval', 'schedule', 'utilization'], lineterminator="\n")
                 writer.writeheader()
                 for k, w_ in enumerate(self.resourceList):
-                    #print(f"""INSERT INTO tblResources VALUES ({w_['id']}, '{w_['skills'][0]}');""")
-                    #crsr.execute(f"""INSERT INTO tblResources VALUES ({w_['id']}, '{w_['skills'][0]}');""")
+                    # print(f"""INSERT INTO tblResources VALUES ({w_['id']}, '{w_['skills'][0]}');""")
+                    # crsr.execute(f"""INSERT INTO tblResources VALUES ({w_['id']}, '{w_['skills'][0]}');""")
                     pb.update(k, len(self.resourceList))
                     for i_ in range(self.NUM_INTERVALS):
-                        row = {'id' : w_['id'], 'interval' : str(i_), 'schedule':w_['schedule'][i_], 'utilization':w_['utilization'][i_]}
-                        #crsr.execute(f"""INSERT INTO tblResources VALUES ({w_['id']}, {w_['schedule'][i_]}, {w_['utilization'][i_]}, '{w_['skills'][0]}');""")
+                        row = {'id': w_['id'], 'interval': str(i_), 'schedule': w_['schedule'][i_], 'utilization': w_['utilization'][i_]}
+                        # crsr.execute(f"""INSERT INTO tblResources VALUES ({w_['id']}, {w_['schedule'][i_]}, {w_['utilization'][i_]}, '{w_['skills'][0]}');""")
                         writer.writerow(row)
-            pb.update(1,1)
+            pb.update(1, 1)
             pb.clean()
             conn.commit()
             conn.close()
