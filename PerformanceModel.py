@@ -14,11 +14,11 @@ class ResourcePool:
         self.exhaustedSkills = []
 
         # Model paramaters
-        self.NUM_INTERVALS = 12 * 60 * 60  # Hours * Minutes * Seconds
+        self.NUM_INTERVALS = 12 * 60 * 60  # 12 Hours
         self.MAX_INTERVAL = self.NUM_INTERVALS - 1
-        self.NUM_CALLS = 20000
+        self.NUM_CALLS = 25000
         self.NUM_RESOURCES = 170
-        self.SHIFT_LENGTH = 8 * 60 * 60  # Hours * Minutes * Seconds
+        self.SHIFT_LENGTH = 8 * 60 * 60  # 8 Hours
         self.MAX_DURATION = 300
         self.MAX_DELAY_BEFORE_CANCEL = 0
         self.NUM_SKILLS = 3
@@ -207,9 +207,12 @@ class ResourcePool:
                     utilization += 1
         res_utilization = round(100 * utilization / available, 2)
 
-        avg_delay = 0
         if missed_calls > 0:
             avg_delay = round(total_delay / missed_calls, 2)
+            asa = round(total_delay / total_calls, 0)
+        else:
+            avg_delay = 0
+            asa = 0
 
         unanswered_perc = round(100 * unanswered_calls / total_calls, 2)
         calc_svl = round(100 - (100 * out_svl / total_calls), 2)
@@ -220,7 +223,7 @@ class ResourcePool:
         print(f'Service level ({SERVICE_LEVEL}): {calc_svl}%')
         print(f'Delayed calls: {missed_calls} ({delayed_perc}%)')
         print(f'Unanswered calls: {unanswered_calls} ({unanswered_perc}%)')
-        print(f'ASA: {total_delay/total_calls:.0f}')
+        print(f'Average seconds to answer: {asa:.0f}')
         print(f'Average delay: {avg_delay}')
         print(f'Max delay: {max_delay}')
         print(f'Resource Utilization: {res_utilization}%')
