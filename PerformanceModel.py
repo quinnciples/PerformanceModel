@@ -27,8 +27,8 @@ class ResourcePool:
     def createResources(self):
 
         def determineStartingInterval():
-            start_interval = P_constrain(np.random.normal(), -2.35, 3)
-            start_interval = P_map(start_interval, -2.35, 3, 0, 4.999)
+            start_interval = P_constrain(np.random.normal(), -3.0, 3.0)
+            start_interval = P_map(start_interval, -3.0, 3.0, 0, 3.999)
             start_interval = int(start_interval * 60 * 60)
             return start_interval
 
@@ -83,7 +83,7 @@ class ResourcePool:
             return skill
 
         def determineDuration():
-            return random.randint(3, self.MAX_DURATION)
+            return int(P_map(P_constrain(np.random.normal(), -3.0, 3.0), -3.0, 3.0, 5, self.MAX_DURATION))
 
         print('Creating demand list...')
         toolbar_width = 40
@@ -220,6 +220,7 @@ class ResourcePool:
         print(f'Service level ({SERVICE_LEVEL}): {calc_svl}%')
         print(f'Delayed calls: {missed_calls} ({delayed_perc}%)')
         print(f'Unanswered calls: {unanswered_calls} ({unanswered_perc}%)')
+        print(f'ASA: {total_delay/total_calls:.0f}')
         print(f'Average delay: {avg_delay}')
         print(f'Max delay: {max_delay}')
         print(f'Resource Utilization: {res_utilization}%')
