@@ -2,7 +2,6 @@ import random
 from progress_bar import ProgressBar
 from P_Functions import P_constrain, P_map
 import numpy as np
-# ToDo: change schedule flag to -1, to account for demand id of 1
 
 
 class ResourcePool:
@@ -24,6 +23,7 @@ class ResourcePool:
         self.WRITE_TO_FILE = False
 
     def createResources(self):
+
         def determineStartingInterval():
             start_interval = P_constrain(np.random.normal(), -2.35, 3)
             start_interval = P_map(start_interval, -2.35, 3, 0, 4.999)
@@ -37,19 +37,20 @@ class ResourcePool:
             # Fill in 1's for the duration of this employee's shift
             temp_sch.extend([1 for x in range(self.SHIFT_LENGTH)])
             # Fill in 0's from the end of this employee's shift until the end of the day
-            temp_sch.extend([0 for x in range((self.NUM_INTERVALS) - (self.SHIFT_LENGTH) - (start_interval))])
+            temp_sch.extend([0 for x in range(self.NUM_INTERVALS - self.SHIFT_LENGTH - start_interval)])
             return temp_sch
 
         def determineSkillAssignments():
-            skill = [random.choice(skills)]
+            SKILLS = ['LEVEL_1', 'LEVEL_2', 'LEVEL_3']
+            skill = [random.choice(SKILLS)]
             if random.randint(0, 100) <= 30:
-                skill.append(random.choice([x_ for x_ in list(set(skills) - set(skill))]))
+                skill.append(random.choice([x_ for x_ in list(set(SKILLS) - set(skill))]))
             return skill
 
         print('Creating employee list...')
         toolbar_width = 40
         pb = ProgressBar(toolbar_width=toolbar_width)
-        skills = ['LEVEL_1', 'LEVEL_2', 'LEVEL_3']
+
         for x_ in range(self.NUM_RESOURCES):
             pb.update(x_, self.NUM_RESOURCES)
 
@@ -73,15 +74,12 @@ class ResourcePool:
         pb = ProgressBar(toolbar_width=toolbar_width)
         for x_ in range(self.NUM_CALLS):
             if x_ % round(self.NUM_CALLS / 10) == 0:
-                # print(round(x_ * 100 / self.NUM_CALLS))
                 pb.update(x_, self.NUM_CALLS)
-            # start_interval = random.randint(0, self.MAX_INTERVAL-self.MAX_DURATION-1)
-            # start_interval = int((np.random.normal(self.MAX_INTERVAL / 2,5000)))
-            # start_interval = int((np.random.normal(self.MAX_INTERVAL / 2, self.MAX_INTERVAL / 4)))
+
             start_interval = np.random.normal()
             start_interval = P_map(start_interval, -3.0, 3.0, 0, self.MAX_INTERVAL - self.MAX_DURATION - 1)
             start_interval = int(P_constrain(start_interval, 0, self.MAX_INTERVAL - self.MAX_DURATION - 1))
-            # print(start_interval)
+
             duration = random.randint(3, self.MAX_DURATION)
             skill = random.choice(['LEVEL_1', 'LEVEL_2', 'LEVEL_3'])
             self.addDemand({'id': x_ + 10, 'interval': start_interval, 'duration': duration, 'skill': skill})
