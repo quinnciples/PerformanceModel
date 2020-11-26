@@ -6,6 +6,8 @@ import numpy as np
 
 class ResourcePool:
 
+    version = '1.0'
+
     def __init__(self):
         self.resourceList = []
         self.demandList = []
@@ -69,20 +71,32 @@ class ResourcePool:
         pb.clean()
 
     def createDemand(self):
+        def determineStartingInterval():
+            start_interval = P_constrain(np.random.normal(), -3.0, 3.0)
+            start_interval = P_map(start_interval, -3.0, 3.0, 15 * 60, self.MAX_INTERVAL - self.MAX_DURATION - 1)
+            start_interval = int(P_constrain(start_interval, 0, self.MAX_INTERVAL - self.MAX_DURATION - 1))
+            return start_interval
+
+        def determineSkillAssignments():
+            SKILLS = ['LEVEL_1', 'LEVEL_2', 'LEVEL_3']
+            skill = random.choice(SKILLS)
+            return skill
+
+        def determineDuration():
+            return random.randint(3, self.MAX_DURATION)
+
         print('Creating demand list...')
         toolbar_width = 40
         pb = ProgressBar(toolbar_width=toolbar_width)
         for x_ in range(self.NUM_CALLS):
-            if x_ % round(self.NUM_CALLS / 10) == 0:
-                pb.update(x_, self.NUM_CALLS)
+            pb.update(x_, self.NUM_CALLS)
 
-            start_interval = np.random.normal()
-            start_interval = P_map(start_interval, -3.0, 3.0, 0, self.MAX_INTERVAL - self.MAX_DURATION - 1)
-            start_interval = int(P_constrain(start_interval, 0, self.MAX_INTERVAL - self.MAX_DURATION - 1))
+            start_interval = determineStartingInterval()
+            duration = determineDuration()
+            skill = determineSkillAssignments()
 
-            duration = random.randint(3, self.MAX_DURATION)
-            skill = random.choice(['LEVEL_1', 'LEVEL_2', 'LEVEL_3'])
             self.addDemand({'id': x_ + 10, 'interval': start_interval, 'duration': duration, 'skill': skill})
+
         pb.update(1, 1)
         pb.clean()
 
