@@ -24,6 +24,8 @@ class ResourcePool:
         self.NUM_SKILLS = 3
         self.WRITE_TO_FILE = False
 
+        self.queue = [0 for x in range(self.NUM_INTERVALS)]
+
     def createResources(self):
 
         def determineStartingInterval():
@@ -172,6 +174,12 @@ class ResourcePool:
         pb.update(k + 1, len(self.demandList))
         pb.clean()
 
+    def runAdvancedSimulation(self):
+        for d in self.demandList:
+            self.queue[d['interval']] += 1
+        print(self.queue)
+        print(sum(self.queue))
+
     def printStatistics(self):
         SERVICE_LEVEL = 20
         total_calls = len(self.demandList)
@@ -284,7 +292,8 @@ print('Optimizing simulation paramaters')
 resourcePool.prepareSimulation()
 
 print('Running simulation...')
-resourcePool.runSimulation()
+# resourcePool.runSimulation()
+resourcePool.runAdvancedSimulation()
 
 print('End of simulation.')
-resourcePool.printStatistics()
+# resourcePool.printStatistics()
