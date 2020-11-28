@@ -1,4 +1,5 @@
 import random
+from collections import defaultdict
 from progress_bar import ProgressBar
 from P_Functions import P_constrain, P_map
 import numpy as np
@@ -12,19 +13,18 @@ class ResourcePool:
         self.resourceList = []
         self.demandList = []
         self.exhaustedSkills = []
+        self.queue = defaultdict(list)
 
         # Model paramaters
         self.NUM_INTERVALS = 12 * 60 * 60  # 12 Hours
         self.MAX_INTERVAL = self.NUM_INTERVALS - 1
-        self.NUM_CALLS = 25000
+        self.NUM_CALLS = 15000
         self.NUM_RESOURCES = 170
         self.SHIFT_LENGTH = 8 * 60 * 60  # 8 Hours
         self.MAX_DURATION = 300
         self.MAX_DELAY_BEFORE_CANCEL = 0
         self.NUM_SKILLS = 3
         self.WRITE_TO_FILE = False
-
-        self.queue = [0 for x in range(self.NUM_INTERVALS)]
 
     def createResources(self):
 
@@ -149,13 +149,12 @@ class ResourcePool:
             return 'FAIL'
 
     def runSimulation(self):
-        abort = False
         toolbar_width = 40
         pb = ProgressBar(toolbar_width=toolbar_width)
         for k, demand in enumerate(self.demandList):
             if k % round((self.NUM_CALLS / 40)) == 0:
                 # print(round(k * 100 / self.NUM_CALLS))
-                pb.update(k, len(self.demandList))
+                pb.update(k, self.NUM_CALLS)
             if demand['skill'] in self.exhaustedSkills:
                 continue
             assigned = self.findAvailableResource(demand)
@@ -167,18 +166,22 @@ class ResourcePool:
                 if len(self.exhaustedSkills) == self.NUM_SKILLS:
                     pb.update(1, 1)
                     print(f'\nAll skills exhausted. Simulated {k} out of {self.NUM_CALLS} demand events.')
-                    abort = True  # switch
-                if abort:
                     pb.update(1, 1)
                     break
         pb.update(k + 1, len(self.demandList))
         pb.clean()
 
     def runAdvancedSimulation(self):
-        for d in self.demandList:
-            self.queue[d['interval']] += 1
-        print(self.queue)
-        print(sum(self.queue))
+        for tick in range(self.NUM_INTERVALS):
+            # Loop through demand items in the current queue
+            for demand in self.queue[tick]:
+                # Try to assign these items to an available resource
+                pass
+
+            # Loop through items in the demand simulation.
+            for demand in self.demandList:
+                # Assign this to an available resource if possible. If not, add them to the queue.
+                pass
 
     def printStatistics(self):
         SERVICE_LEVEL = 20
