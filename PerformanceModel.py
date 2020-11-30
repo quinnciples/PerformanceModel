@@ -9,7 +9,7 @@ import pprint
 
 class ResourcePool:
 
-    version = '1.0'
+    version = '1.1'
 
     def __init__(self):
         self.resourceList = []
@@ -20,8 +20,8 @@ class ResourcePool:
         # Model paramaters
         self.NUM_INTERVALS = 12 * 60 * 60  # 12 Hours
         self.MAX_INTERVAL = self.NUM_INTERVALS - 1
-        self.NUM_CALLS = 100
-        self.NUM_RESOURCES = 170
+        self.NUM_CALLS = 1000
+        self.NUM_RESOURCES = 12
         self.SHIFT_LENGTH = 8 * 60 * 60  # 8 Hours
         self.MAX_DURATION = 300
         self.MAX_DELAY_BEFORE_CANCEL = 0
@@ -116,6 +116,9 @@ class ResourcePool:
     def addToQueue(self, interval, demand):
         self.queue[interval].append(demand)
 
+    def removeFromQueue(self, interval, demand):
+        self.queue[interval] = [x for x in self.queue[interval] if x['id'] != demand['id']]    
+
     def prepareSimulation(self):
         self.sortDemand('interval')
         minAvailableInterval = self.MAX_INTERVAL
@@ -183,17 +186,21 @@ class ResourcePool:
         for tick in range(self.NUM_INTERVALS):
             pb.update(tick, self.NUM_INTERVALS)
 
-            for demand in self.queue[tick]:
+            for demand in sorted(self.queue[tick], key=lambda x:x['interval']): # Need to double-check this works. Queue should be prioritized so that the oldest demand is satisfied first, if a slot becomes available.
                 # Try to assign these items to an available resource
-                # If unable to assign, they remain in the queue
-                pass
+                # If able to assign, remove the entry from the queue
+                assigned = self.findAvailableResource(demand)
+                if not assigned.startswith('FAIL'):
+                    self.removeFromQueue(demand)
 
             # Loop through items in the demand simulation.
             for demand in [x for x in self.demandList if x['interval'] == tick]:
                 # Assign this to an available resource if possible.
                 # If not assigned, add them to the queue.
-                self.addToQueue(interval=tick, demand=demand)
-                pass
+                assigned = self.findAvailableResource(demand)
+                if assigned.startswith('FAIL'):
+                    self.addToQueue(interval=tick, demand=demand)
+
         pb.clean()
 
     def printStatistics(self):
@@ -312,6 +319,6 @@ print('Running simulation...')
 resourcePool.runAdvancedSimulation()
 
 print('End of simulation.')
-# resourcePool.printStatistics()
+resourcePool.printStatistics()
 
 # pprint.pprint(resourcePool.queue)
