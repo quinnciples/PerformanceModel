@@ -1,5 +1,5 @@
 import random
-from typing import List
+# from typing import List
 from collections import defaultdict
 from progress_bar import ProgressBar
 from P_Functions import P_constrain, P_map
@@ -114,7 +114,6 @@ class ResourcePool:
         self.demandList.sort(key=lambda x: x[sortKey])
 
     def addToQueue(self, interval, demand):
-        print('adding', demand)
         self.queue[interval].append(demand)
 
     def prepareSimulation(self):
@@ -183,15 +182,16 @@ class ResourcePool:
 
         for tick in range(self.NUM_INTERVALS):
             pb.update(tick, self.NUM_INTERVALS)
-            # Loop through demand items in the current queue
+
             for demand in self.queue[tick]:
                 # Try to assign these items to an available resource
+                # If unable to assign, they remain in the queue
                 pass
 
             # Loop through items in the demand simulation.
             for demand in [x for x in self.demandList if x['interval'] == tick]:
-                # Assign this to an available resource if possible. If not, add them to the queue.
-                print(tick, demand)
+                # Assign this to an available resource if possible.
+                # If not assigned, add them to the queue.
                 self.addToQueue(interval=tick, demand=demand)
                 pass
         pb.clean()
@@ -314,4 +314,4 @@ resourcePool.runAdvancedSimulation()
 print('End of simulation.')
 # resourcePool.printStatistics()
 
-pprint.pprint(resourcePool.queue)
+# pprint.pprint(resourcePool.queue)
