@@ -4,7 +4,7 @@ from collections import defaultdict
 from progress_bar import ProgressBar
 from P_Functions import P_constrain, P_map
 import numpy as np
-import pprint
+# import pprint
 
 
 class ResourcePool:
@@ -117,7 +117,7 @@ class ResourcePool:
         self.queue[interval].append(demand)
 
     def removeFromQueue(self, interval, demand):
-        self.queue[interval] = [x for x in self.queue[interval] if x['id'] != demand['id']]    
+        self.queue[interval] = [x for x in self.queue[interval] if x['id'] != demand['id']]
 
     def prepareSimulation(self):
         self.sortDemand('interval')
@@ -186,7 +186,7 @@ class ResourcePool:
         for tick in range(self.NUM_INTERVALS):
             pb.update(tick, self.NUM_INTERVALS)
 
-            for demand in sorted(self.queue[tick], key=lambda x:x['interval']): # Need to double-check this works. Queue should be prioritized so that the oldest demand is satisfied first, if a slot becomes available.
+            for demand in sorted(self.queue[tick], key=lambda x: x['interval']):  # Need to double-check this works. Queue should be prioritized so that the oldest demand is satisfied first, if a slot becomes available.
                 # Try to assign these items to an available resource
                 # If able to assign, remove the entry from the queue
                 assigned = self.findAvailableResource(demand)
@@ -320,5 +320,3 @@ resourcePool.runAdvancedSimulation()
 
 print('End of simulation.')
 resourcePool.printStatistics()
-
-# pprint.pprint(resourcePool.queue)
