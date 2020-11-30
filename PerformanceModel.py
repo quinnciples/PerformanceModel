@@ -1,8 +1,10 @@
 import random
+from typing import List
 from collections import defaultdict
 from progress_bar import ProgressBar
 from P_Functions import P_constrain, P_map
 import numpy as np
+import pprint
 
 
 class ResourcePool:
@@ -18,7 +20,7 @@ class ResourcePool:
         # Model paramaters
         self.NUM_INTERVALS = 12 * 60 * 60  # 12 Hours
         self.MAX_INTERVAL = self.NUM_INTERVALS - 1
-        self.NUM_CALLS = 15000
+        self.NUM_CALLS = 100
         self.NUM_RESOURCES = 170
         self.SHIFT_LENGTH = 8 * 60 * 60  # 8 Hours
         self.MAX_DURATION = 300
@@ -111,6 +113,10 @@ class ResourcePool:
     def sortDemand(self, sortKey):
         self.demandList.sort(key=lambda x: x[sortKey])
 
+    def addToQueue(self, interval, demand):
+        print('adding', demand)
+        self.queue[interval].append(demand)
+
     def prepareSimulation(self):
         self.sortDemand('interval')
         minAvailableInterval = self.MAX_INTERVAL
@@ -172,16 +178,23 @@ class ResourcePool:
         pb.clean()
 
     def runAdvancedSimulation(self):
+        toolbar_width = 40
+        pb = ProgressBar(toolbar_width=toolbar_width)
+
         for tick in range(self.NUM_INTERVALS):
+            pb.update(tick, self.NUM_INTERVALS)
             # Loop through demand items in the current queue
             for demand in self.queue[tick]:
                 # Try to assign these items to an available resource
                 pass
 
             # Loop through items in the demand simulation.
-            for demand in self.demandList:
+            for demand in [x for x in self.demandList if x['interval'] == tick]:
                 # Assign this to an available resource if possible. If not, add them to the queue.
+                print(tick, demand)
+                self.addToQueue(interval=tick, demand=demand)
                 pass
+        pb.clean()
 
     def printStatistics(self):
         SERVICE_LEVEL = 20
@@ -300,3 +313,5 @@ resourcePool.runAdvancedSimulation()
 
 print('End of simulation.')
 # resourcePool.printStatistics()
+
+pprint.pprint(resourcePool.queue)
