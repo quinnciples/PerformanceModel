@@ -187,8 +187,8 @@ class ResourcePool:
             pb.update(tick, self.NUM_INTERVALS)
 
             for demand in sorted(self.queue[tick], key=lambda x: x['interval']):  # Need to double-check this works. Queue should be prioritized so that the oldest demand is satisfied first, if a slot becomes available.
-                # Try to assign these items to an available resource
-                # If able to assign, remove the entry from the queue
+                # Try to assign these items to an available resource.
+                # If able to assign, remove the entry from the queue.
                 assigned = self.findAvailableResource(demand)
                 if not assigned.startswith('FAIL'):
                     self.removeFromQueue(demand)
